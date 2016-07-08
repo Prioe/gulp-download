@@ -12,35 +12,35 @@ npm install gulp-download
 
 #### Single File
 ```js
-var download = require("gulp-download");
+var download = require('gulp-download');
 
 download('http://hastebin.com/raw/file.txt')
-  .pipe(gulp.dest("downloads/"));
+  .pipe(gulp.dest('downloads/'));
 ```
 
 #### Multiple Files
 ```js
-var download = require("gulp-download");
+var download = require('gulp-download');
 
 download(['http://hastebin.com/raw/file1.txt', 'http://hastebin.com/raw/file2.txt'])
-  .pipe(gulp.dest("downloads/"));
+  .pipe(gulp.dest('downloads/'));
 ```
 
 #### Single File with custom output filename
 ```js
-var download = require("gulp-download");
+var download = require('gulp-download');
 var dl = {
   file: 'renamed.txt',
   url: 'http://hastebin.com/raw/file.txt'
 }
 
 download(dl)
-  .pipe(gulp.dest("downloads/"));
+  .pipe(gulp.dest('downloads/'));
 ```
 
 #### Multiple Files with custom output filenames
 ```js
-var download = require("gulp-download");
+var download = require('gulp-download');
 var dl = [
   {
     file: 'renamed1.txt',
@@ -53,5 +53,5 @@ var dl = [
 ];
 
 download(dl)
-  .pipe(gulp.dest("downloads/"));
+  .pipe(gulp.dest('downloads/'));
 ```
