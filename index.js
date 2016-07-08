@@ -2,7 +2,10 @@ var through = require("through"),
 	gutil = require("gulp-util"),
 	request = require("request"),
 	progress = require("request-progress"),
-	col = gutil.colors;
+	col = gutil.colors,
+	ansi = require('ansi'),
+	cursor = ansi(process.stdout),
+	stripAnsi = require('strip-ansi');
 
 module.exports = function(urls){
 	var stream = through(function(file,enc,cb){
@@ -18,7 +21,8 @@ module.exports = function(urls){
 	function download(url){
 		var fileName,
 			firstLog = true;
-		
+			msgLen = 0;
+
 		if (typeof url === "object") {
 			fileName = url.file;
 			url = url.url;
@@ -30,12 +34,14 @@ module.exports = function(urls){
 			{throttle:1000,delay:1000}
 		)
 		.on('progress',function(state){
-			process.stdout.write(' '+state.percent+'%');
+			cursor.horizontalAbsolute(msgLen+1).eraseLine().write(Math.ceil(state.percentage * 100)+"%");
 		})
 		.on('data',function(){
 			if(firstLog){
-				process.stdout.write('['+col.green('gulp')+']'+' Downloading '+col.cyan(url)+'...');
+				var s = '['+col.green('gulp')+']'+' Downloading '+col.cyan(url)+'... ';
+				process.stdout.write(s);
 				firstLog = false;
+				msgLen = stripAnsi(s).length;
 			}
 		});
 
@@ -43,7 +49,7 @@ module.exports = function(urls){
 			var file = new gutil.File( {path:fileName, contents: new Buffer(body)} );
 			stream.queue(file);
 
-			process.stdout.write(' '+col.green('Done\n'));
+			cursor.horizontalAbsolute(msgLen-3).eraseLine().write(col.green(' Complete!\n'));
 			downloadCount++;
 			if(downloadCount != files.length){
 				download(files[downloadCount]);
@@ -56,4 +62,3 @@ module.exports = function(urls){
 
 	return stream;
 };
-
