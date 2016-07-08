@@ -4,11 +4,12 @@ var request = require('request');
 var progress = require('request-progress');
 var ansi = require('ansi');
 var stripAnsi = require('strip-ansi');
+var bytes = require('bytes');
 var cursor = ansi(process.stdout);
 var col = gutil.colors;
 
 module.exports = function(urls) {
-  var stream = through(function(file,enc,cb) {
+  var stream = through(function(file, enc, cb) {
     this.push(file);
     cb();
   });
@@ -29,28 +30,40 @@ module.exports = function(urls) {
     }
 
     progress(
-      request({url:url,encoding:null},downloadHandler),
-      {throttle:1000,delay:1000}
+      request(
+        {
+          url: url,
+          encoding: null
+        }, downloadHandler),
+      {
+        throttle: 1000,
+        delay: 1000
+      }
     )
 
     .on('progress', function(state) {
-      cursor.horizontalAbsolute(msgLen + 1).eraseLine().write(Math.ceil(state.percentage * 100) + '%');
+      var str = Math.ceil(state.percentage * 100) + '% | ' +
+        bytes(state.speed, { decimalPlaces: 1 }) + '/s';
+      cursor.horizontalAbsolute(msgLen + 1).eraseLine().write(str);
     })
 
     .on('data', function() {
       if(firstLog) {
-        var s = '[' + col.green('gulp')+']' + ' Downloading ' + col.cyan(url) + '... ';
-        process.stdout.write(s);
+        var str = '[' + col.green('gulp') + ']' + ' Downloading ' + col.cyan(url) + '... ';
+        process.stdout.write(str);
         firstLog = false;
-        msgLen = stripAnsi(s).length;
+        msgLen = stripAnsi(str).length;
       }
     });
 
     function downloadHandler(err, res, body) {
-      var file = new gutil.File( {path:fileName, contents: new Buffer(body)} );
+      var file = new gutil.File({
+        path: fileName,
+        contents: new Buffer(body)
+      });
       stream.queue(file);
 
-      cursor.horizontalAbsolute(msgLen-3).eraseLine().write(col.green(' Complete!\n'));
+      cursor.horizontalAbsolute(msgLen - 3).eraseLine().write(col.green(' Complete!\n'));
       downloadCount++;
       if(downloadCount != files.length) {
         download(files[downloadCount]);
